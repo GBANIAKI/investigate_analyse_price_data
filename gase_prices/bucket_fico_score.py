@@ -47,17 +47,17 @@ data = pd.read_csv('gase_prices/Loan_Data.csv')
 print(data.head())
 
 # Extract FICO scores and default status
-fico_scores = df['fico_score']
-defaults = df['default']
+fico_scores = data['fico_score']
+defaults = data['default']
 
 # Quantize into 5 buckets
 num_buckets = 5
 buckets, boundaries = quantize_fico_scores(fico_scores, num_buckets)
 
 # Add the bucket information to the DataFrame
-df['fico_bucket'] = buckets
+data['fico_bucket'] = buckets
 
-print(df[['fico_score', 'fico_bucket']])
+print(data[['fico_score', 'fico_bucket']])
 # Calculate initial log-likelihood
 initial_log_likelihood = calculate_log_likelihood(fico_scores, defaults, boundaries)
 print(f"Initial Log-Likelihood: {initial_log_likelihood}")
