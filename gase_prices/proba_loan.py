@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 # Load the data
-data = pd.read_csv('Loan_Data.csv')
+data = pd.read_csv('gase_prices/Loan_Data.csv')
 
 # Assume the dataset has columns: 'income', 'total_loans', 'other_metrics', 'defaulted'
 # Preprocess the data
