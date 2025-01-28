@@ -1,0 +1,39 @@
+Data Snapshot:
+            Prices
+Dates             
+2020-10-31    10.1
+2020-11-30    10.3
+2020-12-31    11.0
+2021-01-31    10.9
+2021-02-28    10.9
+
+Training Data Size: (33, 7)
+Testing Data Size: (12, 7)
+21:31:11 - cmdstanpy - INFO - Chain [1] start processing
+21:31:11 - cmdstanpy - INFO - Chain [1] done processing
+
+Model Evaluation:
+SARIMA - MAE: 0.6604, RMSE: 0.7361
+Prophet - MAE: 0.0847, RMSE: 0.1151
+Gradient Boosting Regressor - MAE: 0.4712, RMSE: 0.5875
+
+Model Comparison:
+               Model      RMSE
+1            Prophet  0.115120
+2  Gradient Boosting  0.587534
+0             SARIMA  0.736132
+
+Best Model: Prophet
+
+Price Estimates:
+Price on 05/31/21: 9.84
+New Entry for GBR Prediction:    Price_Lag_1  Price_Lag_2  Price_Lag_3  Rolling_Mean_3  Rolling_STD_3  Month_Sin  Month_Cos
+0         11.5         11.6         11.5       11.633333       0.152753  -0.866025        0.5
+Price on 10/31/23: 11.56
+New Entry for GBR Prediction:    Price_Lag_1  Price_Lag_2  Price_Lag_3  Rolling_Mean_3  Rolling_STD_3  Month_Sin  Month_Cos
+0         11.5         11.6         11.5       11.633333       0.152753  -0.866025        0.5
+Estimated Price on 10/31/24: 11.56
+Estimated Price on 03/15/25: Can only forecast up to 12 months beyond the dataset.
+Estimated Price on 03/15/25: 12.04
+
+Models have been saved for future use.

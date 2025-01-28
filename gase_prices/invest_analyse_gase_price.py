@@ -150,7 +150,7 @@ sarima_forecast = sarima_result.predict(start=y_test.index[0], end=y_test.index[
 prophet_train = df_reset[['Dates', 'Prices']].dropna().copy()
 prophet_train = prophet_train.rename(columns={'Dates': 'ds', 'Prices': 'y'})
 
-prophet_model = Prophet(yearly_seasonality=True, seasonal_mode='additive')
+prophet_model = Prophet(yearly_seasonality=True, seasonality_mode='additive')
 prophet_model.fit(prophet_train)
 
 # Create a dataframe for future dates (testing dates)
@@ -214,6 +214,7 @@ sns.histplot(residuals, kde=True)
 plt.title(f'Residuals Distribution for {best_model_name}')
 plt.xlabel('Residuals')
 plt.ylabel('Frequency')
+plt.savefig('monthly_natural_gas_prices1.png')
 plt.show()
 
 plt.figure(figsize=(10, 5))
@@ -222,6 +223,7 @@ plt.title(f'Residuals Over Time for {best_model_name}')
 plt.xlabel('Date')
 plt.ylabel('Residuals')
 plt.axhline(0, color='red', linestyle='--')
+plt.savefig('monthly_natural_gas_prices2.png')
 plt.show()
 
 # 8. Enhanced Price Estimation Function Using the Best Model
@@ -256,22 +258,34 @@ def enhanced_estimate_price(input_date, model='gbr'):
         if model.lower() == 'gbr':
             # Generate features for the new date
             # For simplicity, using the last available data for lag features
-            last_available = df_reset.iloc[-1]
+            # Generate features for the new date using shift
+            price_lag_1 = df['Prices'].shift(1).iloc[-1]
+            price_lag_2 = df['Prices'].shift(2).iloc[-1]
+            price_lag_3 = df['Prices'].shift(3).iloc[-1]
+            rolling_mean_3 = df['Prices'].rolling(window=3).mean().iloc[-1]
+            rolling_std_3 = df['Prices'].rolling(window=3).std().iloc[-1]
+            month_sin = np.sin(2 * np.pi * date.month / 12)
+            month_cos = np.cos(2 * np.pi * date.month / 12)
+             # Check for NaN in lagged features
+            if np.isnan(price_lag_1) or np.isnan(price_lag_2) or np.isnan(price_lag_3):
+                return "Insufficient data to make a prediction."
+
             new_entry = {
-                'Price_Lag_1': last_available['Prices'],
-                'Price_Lag_2': last_available['Price_Lag_1'],
-                'Price_Lag_3': last_available['Price_Lag_2'],
-                'Rolling_Mean_3': (last_available['Prices'] + last_available['Price_Lag_1'] + last_available['Price_Lag_2']) / 3,
-                'Rolling_STD_3': df_reset['Prices'].rolling(window=3).std().iloc[-1],
-                'Month_Sin': np.sin(2 * np.pi * date.month / 12),
-                'Month_Cos': np.cos(2 * np.pi * date.month / 12)
+                'Price_Lag_1': price_lag_1,
+                'Price_Lag_2': price_lag_2,
+                'Price_Lag_3': price_lag_3,
+                'Rolling_Mean_3': rolling_mean_3,
+                'Rolling_STD_3': rolling_std_3,
+                'Month_Sin': month_sin,
+                'Month_Cos': month_cos
             }
             X_new = pd.DataFrame([new_entry])
+            print(f"New Entry for GBR Prediction: {X_new}")  # Debugging
             predicted_price = gbr_model.predict(X_new)[0]
             return round(predicted_price, 2)
         elif model.lower() == 'sarima':
             # Extend the SARIMA model forecast
-            steps = (date.year - y_test.index[-1].year) * 12 + (date.month - y_test.index[-1].month)
+            steps = (date.year - last_train_date.year) * 12 + (date.month - last_train_date.month)
             if steps < 1 or steps > 12:
                 return "Can only forecast up to 12 months beyond the dataset."
             sarima_future = sarima_result.get_forecast(steps=steps)
@@ -311,6 +325,7 @@ plt.xlabel('Date')
 plt.ylabel('Price ($)')
 plt.legend()
 plt.grid(True)
+plt.savefig('monthly_natural_gas_prices3.png')
 plt.show()
 
 # Plot future predictions using the best model (Gradient Boosting Regressor)
@@ -325,9 +340,10 @@ future_features = []
 
 for date in future_dates:
     # Retrieve the last 3 prices
-    price_lag_1 = df.loc[df.index == last_date, 'Prices'].values[0]
-    price_lag_2 = df.loc[df.index == last_date - pd.DateOffset(months=1), 'Prices'].values[0]
-    price_lag_3 = df.loc[df.index == last_date - pd.DateOffset(months=2), 'Prices'].values[0]
+    price_lag_1 = df['Prices'].shift(1).iloc[-1]  # Previous month's price
+    price_lag_2 = df['Prices'].shift(2).iloc[-1]  # Two months ago
+    price_lag_3 = df['Prices'].shift(3).iloc[-1]  # Previous month's price
+     #price_lag_2 = df['Prices'].shift(2).iloc[-1]  # Two months ago
     rolling_mean_3 = (price_lag_1 + price_lag_2 + price_lag_3) / 3
     rolling_std_3 = df['Prices'].rolling(window=3).std().iloc[-1]
     month_sin = np.sin(2 * np.pi * date.month / 12)
@@ -362,6 +378,7 @@ plt.xlabel('Date')
 plt.ylabel('Price ($)')
 plt.legend()
 plt.grid(True)
+plt.savefig('monthly_natural_gas_prices4.png')
 plt.show()
 
 # 11. Saving the Models for Future Use (Optional)
@@ -375,6 +392,6 @@ joblib.dump(gbr_model, 'gradient_boosting_model.pkl')
 sarima_result.save('sarima_model.pkl')
 
 # Save the Prophet model
-prophet_model.save('prophet_model.pkl')
+joblib.dump(prophet_model, 'prophet_model.pkl')
 
 print("\nModels have been saved for future use.")
