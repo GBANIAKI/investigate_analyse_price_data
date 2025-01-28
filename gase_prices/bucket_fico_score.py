@@ -1,6 +1,7 @@
 # Convert the data into a DataFrame
 from io import StringIO
 import numpy as np
+import pandas as pd
 
 def quantize_fico_scores(fico_scores, num_buckets):
     # Sort FICO scores
